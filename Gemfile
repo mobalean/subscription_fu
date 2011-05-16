@@ -5,11 +5,12 @@ gemspec
 
 group :development, :test do
   gem 'rails'
-  gem 'rspec', '>= 2.5.0'
-  gem 'capybara'
-  gem 'steak'
   gem 'sqlite3'
-  gem 'rspec-rails'
   gem 'haml'
-  gem 'fakeweb'
+  gem 'rspec', '>= 2.5.0'
+  gem 'rspec-rails'
+  gem 'shoulda-matchers'
+  gem 'factory_girl'
+  gem 'time_travel', '0.1.0'
+  gem 'webmock'
 end
