@@ -33,3 +33,5 @@ Then install the required files:
           ...
         end
 
+ 3. Create subscriptions and transactions controllers and views, for example see examples
+
