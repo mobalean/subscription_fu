@@ -12,6 +12,9 @@ module SubscriptionFu
       def create_migration_file
         migration_template 'migration.rb', 'db/migrate/create_subscription_fu_tables.rb'
       end
+      def copy_initializer
+        template 'initializer.rb', 'config/initializers/subscription_fu.rb'
+      end
     end
   end
 end
