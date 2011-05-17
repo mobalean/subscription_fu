@@ -2,7 +2,6 @@ LIB_DIR = File.expand_path('../../', __FILE__)
 $:.unshift File.join(LIB_DIR, 'lib')
 
 ENV["RAILS_ENV"] ||= 'test'
-require 'subscription_fu'
 require File.expand_path(File.dirname(__FILE__) + "/app/config/environment")
 require 'rspec/rails'
 require 'shoulda-matchers'
