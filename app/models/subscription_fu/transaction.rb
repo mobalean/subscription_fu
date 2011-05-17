@@ -40,7 +40,7 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
 
     token = subscription.start_checkout(return_url, cancel_url, initiator_email)
     update_attributes!(:identifier => token)
-    token
+    "#{SubscriptionFu.config.paypal_landing_url}?cmd=_express-checkout&token=#{CGI.escape(token)}"
   end
 
   def start_free_checkout

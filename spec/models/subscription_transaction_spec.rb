@@ -100,7 +100,7 @@ describe SubscriptionFu::Transaction do
         @token = @trans.start_checkout("url1", "url2")
       end
       it "should set correct token" do
-        @token.should == "bgds65sd"
+        @token.should == "https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=bgds65sd"
         @trans.identifier.should == "bgds65sd"
       end
       complete_should_transition_to_activated

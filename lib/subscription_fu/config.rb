@@ -1,6 +1,6 @@
 module SubscriptionFu
   class Config
-    attr_accessor :plan_class_name, :paypal_nvp_api_url, :paypal_api_user_id, :paypal_api_pwd, :paypal_api_sig
+    attr_accessor :plan_class_name, :paypal_nvp_api_url, :paypal_api_user_id, :paypal_api_pwd, :paypal_api_sig, :paypal_landing_url
     attr_reader :available_plans
 
     def initialize
@@ -11,10 +11,12 @@ module SubscriptionFu
 
     def paypal_use_sandbox!
       self.paypal_nvp_api_url = "https://api-3t.sandbox.paypal.com/nvp"
+      self.paypal_landing_url = "https://www.sandbox.paypal.com/cgi-bin/webscr"
     end
 
     def paypal_use_production!
       self.paypal_nvp_api_url = "https://api-3t.paypal.com/nvp"
+      self.paypal_landing_url = "https://www.paypal.com/cgi-bin/webscr"
     end
 
     def add_plan(key, price, data = {})
