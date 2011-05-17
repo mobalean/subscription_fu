@@ -23,7 +23,7 @@ module SubscriptionFu
       end
 
       def active_subscription?
-        !@active_subscription.nil?
+        !active_subscription.nil?
       end
 
       def upcoming_subscription
