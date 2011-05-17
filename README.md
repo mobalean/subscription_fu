@@ -14,7 +14,7 @@ SubscriptionFu makes the following assumptions on how subscriptions are used:
 
 Add to your Gemfile:
 
-    gem 'subscription_fu'
+    gem 'subscription_fu', :git => "git://github.com/mobalean/subscription_fu.git"
 
 Run "bundle install".
 
