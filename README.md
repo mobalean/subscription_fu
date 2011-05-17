@@ -35,3 +35,17 @@ Then install the required files:
 
  3. Create subscriptions and transactions controllers and views, for example see examples
 
+## Using the subscriptions
+
+Once setup, your subscription subject (the group in our example) will get a couple new methods. To check whether or not it has a subscription, use:
+
+    group.active_subscription?
+
+For getting the group's plan, you can simply use:
+
+    group.subscription_plan
+
+Which will give you an instance of the subscription plan as defined in the initializer.
+
+For more details, see SubscriptionFu::Models
+
