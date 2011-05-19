@@ -5,13 +5,13 @@ class TransactionsController < ApplicationController
   end
 
   def abort
-    @transaction.abort!
+    @transaction.abort
     flash[:notice] = "Transaction aborted."
     redirect_to root_path
   end
 
   def update
-    if @transaction.complete!
+    if @transaction.complete
       flash[:notice] = "Sucessfully updated your subscription."
     else
       flash[:error] = "Transaction was not successfull, please try again."

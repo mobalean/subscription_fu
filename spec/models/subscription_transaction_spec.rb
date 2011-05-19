@@ -21,8 +21,9 @@ describe SubscriptionFu::Transaction do
       end
     end
     def complete_should_transition_to_activated
-      context "complete!" do
-        before { @trans.complete! }
+      context "complete" do
+        before { @res = @trans.complete }
+        it("should return true") { @res.should == true }
         it "should transition" do
           @trans.status.should == "complete"
           @trans.subscription.should be_activated
@@ -30,8 +31,9 @@ describe SubscriptionFu::Transaction do
       end
     end
     def complete_should_transition_to_canceled
-      context "complete!" do
-        before { @trans.complete! }
+      context "complete" do
+        before { @res = @trans.complete }
+        it("should return true") { @res.should == true }
         it "should transition" do
           @trans.status.should == "complete"
           @trans.subscription.should be_canceled
@@ -114,7 +116,8 @@ describe SubscriptionFu::Transaction do
       complete_should_transition_to_activated
     end
     context "complete without checkout" do
-      before { @trans.complete! }
+      before { @res = @trans.complete }
+      it("should return false") { @res.should == false }
       it("should fail") { @trans.status.should == "failed" }
     end
   end

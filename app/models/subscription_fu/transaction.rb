@@ -48,7 +48,7 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
     end
   end
 
-  def complete!(opts = {})
+  def complete(opts = {})
     raise "complete only available in initiated state, but: #{status}" unless status == "initiated"
 
     success = true
@@ -64,16 +64,16 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
         logger.debug(err.backtrace.join("\n"))
       end
       update_attributes!(:status => "failed")
-      related_transactions.each { |t| t.abort! }
+      related_transactions.each { |t| t.abort }
       success = false
     end
     success
   end
 
-  def abort!
+  def abort
     raise "abort only available in initiated state, but: #{status}" unless status == "initiated"
     update_attributes(:status => "aborted")
-    related_transactions.each { |t| t.abort! }
+    related_transactions.each { |t| t.abort }
     true
   end
 
@@ -92,7 +92,7 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
 
   def complete_activation
     related_transactions.each do |t|
-      t.complete!(:effective => subscription.starts_at, :reason => :update)
+      t.complete(:effective => subscription.starts_at, :reason => :update)
     end
   end
 

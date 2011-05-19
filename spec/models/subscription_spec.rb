@@ -79,7 +79,7 @@ describe SubscriptionFu::Subscription do
           end
           context "complete" do
             before { mock_paypal_delete_profile("fgsga564aa") } unless first_sub
-            before { @trans.complete! }
+            before { @trans.complete }
             should_activate_subscription(sub_instance)
             should_cancel_previous_subscription(sub_instance) unless first_sub
           end
@@ -105,14 +105,14 @@ describe SubscriptionFu::Subscription do
           context "complete" do
             before { mock_paypal_create_profile("token123", "6bvsaksd9j") }
             before { mock_paypal_delete_profile("fgsga564aa") } unless first_sub
-            before { @trans.complete! }
+            before { @trans.complete }
             should_activate_subscription(sub_instance)
             should_cancel_previous_subscription(sub_instance) unless first_sub
           end
           context "complete with error in cancel" do
             before { mock_paypal_create_profile("token123", "6bvsaksd9j") }
             before { mock_paypal_delete_profile_with_error("fgsga564aa") }
-            before { @trans.complete! }
+            before { @trans.complete }
             should_activate_subscription(sub_instance)
             it "should cancel previous sub with failure" do
               sub = instance_variable_get("@#{sub_instance}").prev_subscription.reload
@@ -123,7 +123,7 @@ describe SubscriptionFu::Subscription do
           context "complete with error in create" do
             before { mock_paypal_create_profile_with_error("token123") }
             before { mock_paypal_delete_profile("fgsga564aa") } unless first_sub
-            before { @trans.complete! }
+            before { @trans.complete }
             it "should not activate subscription" do
               sub = instance_variable_get("@#{sub_instance}").reload
               sub.should_not be_activated
