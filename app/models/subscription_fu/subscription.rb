@@ -98,50 +98,13 @@ class SubscriptionFu::Subscription < ActiveRecord::Base
   end
 
   def initiate_cancellation(admin, activation_transaction)
-    transactions.create_cancellation(admin, activation_transaction)
-  end
-
-  # to be called from subscription transaction only
-  # TODO refactor: move into transaction
-
-  def start_checkout(return_url, cancel_url, email)
-    raise "already activated" if activated?
-    paypal.start_checkout(return_url, cancel_url, email, plan.price_with_tax, human_description)
-  end
-
-  def activate_with_paypal!(token)
-    raise "already activated" if activated?
-    paypal_profile_id, paypal_status =
-      paypal.create_recurring(token, billing_starts_at, plan.price, plan.price_tax, human_description)
-    update_attributes!(:paypal_profile_id => paypal_profile_id, :activated_at => Time.now)
-  end
-
-  def activate_without_billing!(opts = {})
-    raise "already activated" if activated?
-    update_attributes!(:activated_at => Time.now)
-  end
-
-  def cancel!(timestamp, reason)
-    raise "already canceled" if canceled?
-    # update the record beforehand, because paypal raises an error if
-    # the profile is already cancelled
-    update_attributes! :canceled_at => timestamp, :cancel_reason => reason.to_s
-    paypal.cancel_recurring(paypal_profile_id, reason) unless paypal_profile_id.blank?
+    transactions.create_cancellation(admin, activation_transaction, self)
   end
 
   private
 
-  def paypal
-    SubscriptionFu::Paypal.new(SubscriptionFu.config.paypal_api_user_id,
-                               SubscriptionFu.config.paypal_api_pwd,
-                               SubscriptionFu.config.paypal_api_sig,
-                               SubscriptionFu.config.paypal_nvp_api_url,
-                               plan.currency, # TODO should get this later when we get the price
-                               logger)
-  end
-
   def paypal_recurring_details
-    @paypal_recurring_details ||= (paypal_profile_id.blank? ? {} : paypal.recurring_details(paypal_profile_id))
+    @paypal_recurring_details ||= (paypal_profile_id.blank? ? {} : SubscriptionFu::Paypal.paypal.recurring_details(paypal_profile_id))
   end
 
   def convert_paypal_status(paypal_status)

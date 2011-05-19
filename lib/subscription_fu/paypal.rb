@@ -2,6 +2,14 @@ require "rest-client"
 
 class SubscriptionFu::Paypal
 
+  def self.paypal
+    new(SubscriptionFu.config.paypal_api_user_id,
+        SubscriptionFu.config.paypal_api_pwd,
+        SubscriptionFu.config.paypal_api_sig,
+        SubscriptionFu.config.paypal_nvp_api_url,
+        Rails.logger)
+  end
+
   class Failure < RuntimeError
     attr_reader :request_opts, :response
 
@@ -13,16 +21,15 @@ class SubscriptionFu::Paypal
     alias :data :request_opts
   end
 
-  def initialize(user, pwd, sig, api_url, currency_code, logger)
+  def initialize(user, pwd, sig, api_url, logger)
     @user = user
     @pwd = pwd
     @sig = sig
     @api_url = api_url
-    @currency_code = currency_code
     @logger = logger
   end
 
-  def start_checkout(return_url, cancel_url, email, maxamt, desc)
+  def start_checkout(return_url, cancel_url, email, maxamt, currency_code, desc)
     res = call_paypal('SetExpressCheckout',
                       'RETURNURL' => return_url,
                       'CANCELURL' => cancel_url,
@@ -30,13 +37,13 @@ class SubscriptionFu::Paypal
                       'NOSHIPPING' => 1,
                       'MAXAMT' => maxamt,
                       'PAYMENTREQUEST_0_AMT' => 0,
-                      'PAYMENTREQUEST_0_CURRENCYCODE' => @currency_code,
+                      'PAYMENTREQUEST_0_CURRENCYCODE' => currency_code,
                       'L_BILLINGTYPE0' => 'RecurringPayments',
                       'L_BILLINGAGREEMENTDESCRIPTION0' => desc)
     res['TOKEN'].first
   end
 
-  def create_recurring(token, start_date, amt, taxamt, desc)
+  def create_recurring(token, start_date, amt, taxamt, currency_code, desc)
     res = call_paypal('CreateRecurringPaymentsProfile',
                       'PROFILESTARTDATE' => start_date.utc.iso8601,
                       'BILLINGPERIOD' => 'Month',
@@ -45,7 +52,7 @@ class SubscriptionFu::Paypal
                       'AUTOBILLOUTAMT' => 'AddToNextBilling',
                       'AMT' => amt,
                       'TAXAMT' => taxamt,
-                      'CURRENCYCODE' => @currency_code,
+                      'CURRENCYCODE' => currency_code,
                       'DESC' => desc,
                       'TOKEN' => token)
     [res['PROFILEID'].first, res['PROFILESTATUS'].first || res['STATUS'].first]

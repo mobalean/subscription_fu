@@ -163,8 +163,8 @@ describe SubscriptionFu::Subscription do
       should_have_free_activation_flow(:sub, true)
       context "basic successor" do
         before do
-          @sub.activate_without_billing!
           @now = Time.now
+          @sub.update_attribute :activated_at, @now - 53.hours
           at_time(@now) { @succ = @sub.subject.build_next_subscription('basic') ; @succ.save! }
         end
         should_build_valid_successor("basic", :now, :now)
