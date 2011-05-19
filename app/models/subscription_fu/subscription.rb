@@ -102,6 +102,7 @@ class SubscriptionFu::Subscription < ActiveRecord::Base
   end
 
   # to be called from subscription transaction only
+  # TODO refactor: move into transaction
 
   def start_checkout(return_url, cancel_url, email)
     raise "already activated" if activated?
