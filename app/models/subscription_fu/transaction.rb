@@ -34,17 +34,18 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
   end
 
   def start_checkout(return_url, cancel_url)
-    raise "only call start_checkout when authorization is required " unless needs_authorization?
+    raise "start_checkout is only for activation" unless action == "activation"
     raise "start_checkout already called once, have a token" unless identifier.blank?
     raise "start_checkout only available in initiated state, but: #{status}" unless status == "initiated"
 
-    token = subscription.start_checkout(return_url, cancel_url, initiator_email)
-    update_attributes!(:identifier => token)
-    "#{SubscriptionFu.config.paypal_landing_url}?cmd=_express-checkout&token=#{CGI.escape(token)}"
-  end
-
-  def start_free_checkout
-    update_attributes!(:identifier => Devise.friendly_token)
+    if needs_authorization?
+      token = subscription.start_checkout(return_url, cancel_url, initiator_email)
+      update_attributes!(:identifier => token)
+      "#{SubscriptionFu.config.paypal_landing_url}?cmd=_express-checkout&token=#{CGI.escape(token)}"
+    else
+      update_attributes!(:identifier => SubscriptionFu.friendly_token)
+      return_url
+    end
   end
 
   def complete!(opts = {})

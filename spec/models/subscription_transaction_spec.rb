@@ -66,8 +66,16 @@ describe SubscriptionFu::Transaction do
       @trans = Factory(:transaction, :gateway => "nogw", :status => "initiated", :action => "activation", :subscription => @sub)
     end
     should_have_nogw_initiated_status
-    should_not_support_start_checkout
-    complete_should_transition_to_activated
+
+    context "checkout" do
+      before do
+        @redirect_target = @trans.start_checkout("url1", "url2")
+      end
+      it "should redirect to confirmation URL" do
+        @redirect_target.should == "url1"
+      end
+      complete_should_transition_to_activated
+    end
   end
 
   context "initiated cancellation nogw transaction" do
@@ -97,10 +105,10 @@ describe SubscriptionFu::Transaction do
       before do
         mock_paypal_express_checkout("bgds65sd")
         mock_paypal_create_profile("bgds65sd")
-        @token = @trans.start_checkout("url1", "url2")
+        @redirect_target = @trans.start_checkout("url1", "url2")
       end
-      it "should set correct token" do
-        @token.should == "https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=bgds65sd"
+      it "should redirect to paypal" do
+        @redirect_target.should == "https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=bgds65sd"
         @trans.identifier.should == "bgds65sd"
       end
       complete_should_transition_to_activated

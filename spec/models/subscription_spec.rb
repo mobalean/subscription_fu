@@ -71,11 +71,15 @@ describe SubscriptionFu::Subscription do
         before { @trans = instance_variable_get("@#{sub_instance}").initiate_activation(@initiator) }
         should_build_valid_activation_transaction(sub_instance, :trans, first_sub)
         should_build_free_activation_transaction
-        context "complete" do
-          before { mock_paypal_delete_profile("fgsga564aa") } unless first_sub
-          before { @trans.complete! }
-          should_activate_subscription(sub_instance)
-          should_cancel_previous_subscription(sub_instance) unless first_sub
+        context "authorize" do
+          before { @redirect_target = @trans.start_checkout("http://return.to", "http://cancel.to") }
+          it("should redirect to return URL") { @redirect_target.should == "http://return.to" }
+          context "complete" do
+            before { mock_paypal_delete_profile("fgsga564aa") } unless first_sub
+            before { @trans.complete! }
+            should_activate_subscription(sub_instance)
+            should_cancel_previous_subscription(sub_instance) unless first_sub
+          end
         end
       end
     end
@@ -87,7 +91,10 @@ describe SubscriptionFu::Subscription do
         context "authorization" do
           before do
             mock_paypal_express_checkout
-            @trans.start_checkout("http://return.to", "http://cancel.to")
+            @redirect_target = @trans.start_checkout("http://return.to", "http://cancel.to")
+          end
+          it("should redirect to return URL") do
+            @redirect_target.should == "https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=token123"
           end
           context "complete" do
             before { mock_paypal_create_profile("token123", "6bvsaksd9j") }
