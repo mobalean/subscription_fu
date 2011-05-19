@@ -39,6 +39,8 @@ Then install the required files:
 
  1. The user starts the subscription process by selecting a plan (if multiple ones are available, otherwise you can skip this and just have a subscribe button). We assume you'll do that selection in SubscriptionsController#new.
 
+        link_to image_tag("https://www.paypal.com/ja_JP/JP/i/btn/btn_xpressCheckout.gif", :alt => "PayPal で決済を行う"), subscription_path, :method => :post
+
  2. The subscribe form posts to SubscriptionsController#create, which creates an inactive subscription and associated transaction, and finally redirects the user to a checkout URL:
 
         @subscription = current_group.build_next_subscription("basic")
@@ -60,6 +62,12 @@ Then install the required files:
             redirect_to root_path
           end
         end
+
+    The form would look like this: (HAML with simple_form)
+
+        = simple_form_for @transaction, :url => transaction_path do |f|
+          = hidden_field_tag :token, @token
+          .submit= f.button :submit, '申込む'
 
  5. The confirmation form posts to TransactionsController#update, which completes the transaction:
 
