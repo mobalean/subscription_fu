@@ -35,6 +35,43 @@ Then install the required files:
 
  3. Create subscriptions and transactions controllers and views, for example see examples
 
+## General subscription flow
+
+ 1. The user starts the subscription process by selecting a plan (if multiple ones are available, otherwise you can skip this and just have a subscribe button). We assume you'll do that selection in SubscriptionsController#new.
+
+ 2. The subscribe form posts to SubscriptionsController#create, which creates an inactive subscription and associated transaction, and finally redirects the user to a checkout URL:
+
+        @subscription = current_group.build_next_subscription("basic")
+        @subscription.save!
+        @transaction = @subscription.initiate_activation(current_user)
+        redirect_to @transaction.start_checkout(url_for(:action => :confirm, :controller => "transactions"), url_for(:action => :abort, :controller => "transactions"))
+
+ 3. If the transaction gets approved, the user will get back to TransactionsController#confirm. Otherwise she might not return or return to TransactionsController#abort.
+
+ 4. The TransactionsController#confirm is supposed to show the user a final confirmation screen before executing the transaction. To load a pending transaction, use a before filter like this:
+
+        before_filter :require_valid_transaction
+        def require_valid_transaction
+          @token = params[:token]
+          @transaction = current_group.pending_transaction(@token)
+          unless @transaction
+            logger.info("Invalid transaction for token: #{@token}")
+            flash[:error] = "Invalid transaction, please try again."
+            redirect_to root_path
+          end
+        end
+
+ 5. The confirmation form posts to TransactionsController#update, which completes the transaction:
+
+        if @transaction.complete
+          flash[:notice] = "Sucessfully updated your subscription."
+        else
+          flash[:error] = "Transaction was not successfull, please try again."
+        end
+        redirect_to root_path
+
+That's it.
+
 ## Using the subscriptions
 
 Once setup, your subscription subject (the group in our example) will get a couple new methods. To check whether or not it has a subscription, use:
