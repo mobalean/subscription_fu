@@ -23,18 +23,11 @@ class TransactionsController < ApplicationController
 
   def require_valid_transaction
     @token = params[:token]
-    @subscription = current_user.subscriptions.last
-    if @subscription.activated?
-      logger.info("Subscription is already activated")
-      flash[:notice] = "Subscription is already activated"
+    @transaction = current_group.pending_transaction(@token)
+    unless @transaction
+      logger.info("Invalid transaction for token: #{@token}")
+      flash[:error] = "Invalid transaction, please try again."
       redirect_to root_path
-    else
-      @transaction = @subscription.transactions.initiated.find_by_identifier(@token)
-      unless @transaction
-        logger.info("Invalid transaction")
-        flash[:error] = "Invalid transaction, please try again."
-        redirect_to root_path
-      end
     end
   end
 end

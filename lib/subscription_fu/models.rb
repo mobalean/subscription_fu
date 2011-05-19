@@ -30,6 +30,16 @@ module SubscriptionFu
         active_subscription ? active_subscription.next_subscriptions.activated.last : nil
       end
 
+      def pending_transaction(identifier)
+        sub = subscriptions.last
+        if sub.activated?
+          logger.info("Latest subscription is already activated")
+          nil
+        else
+          sub.transactions.initiated.find_by_identifier(identifier)
+        end
+      end
+
       def build_next_subscription(plan_key)
         if active_subscription
           # TODO refactor

@@ -3,7 +3,7 @@ class SubscriptionFu::Subscription < ActiveRecord::Base
 
   AVAILABLE_CANCEL_REASONS = %w( update cancel timeout admin )
 
-  default_scope order(:created_at, :id)
+  default_scope order("created_at ASC", "id ASC")
 
   belongs_to :subject, :polymorphic => true
   belongs_to :prev_subscription, :class_name => "SubscriptionFu::Subscription"

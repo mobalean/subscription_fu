@@ -74,6 +74,9 @@ describe SubscriptionFu::Subscription do
         context "authorize" do
           before { @redirect_target = @trans.start_checkout("http://return.to", "http://cancel.to") }
           it("should redirect to return URL") { @redirect_target.should == "http://return.to" }
+          it("should be pending transaction on subject") do
+            instance_variable_get("@#{sub_instance}").subject.pending_transaction(@trans.identifier).should == @trans
+          end
           context "complete" do
             before { mock_paypal_delete_profile("fgsga564aa") } unless first_sub
             before { @trans.complete! }
@@ -95,6 +98,9 @@ describe SubscriptionFu::Subscription do
           end
           it("should redirect to return URL") do
             @redirect_target.should == "https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=token123"
+          end
+          it("should be pending transaction on subject") do
+            instance_variable_get("@#{sub_instance}").subject.pending_transaction("token123").should == @trans
           end
           context "complete" do
             before { mock_paypal_create_profile("token123", "6bvsaksd9j") }
@@ -146,7 +152,7 @@ describe SubscriptionFu::Subscription do
     before { @initiator = Factory(:initiator)  }
 
     context "free subscription" do
-      before { @sub = Factory(:subscription, :plan_key => "free") }
+      before { at_time("2010-01-10 00:00 UTC") { @sub = Factory(:subscription, :plan_key => "free") } }
       it("should indicate it isn't a paid subscription") { @sub.should_not be_paid_subscription }
       it("should return human name") do
         pending do
@@ -181,8 +187,10 @@ describe SubscriptionFu::Subscription do
         @now = Time.parse("2010-01-12 11:45")
         @sub_start = Time.parse("2010-01-10 00:00 UTC")
         @next_billing = Time.parse("2010-02-10 00:00 UTC")
-        @sub = Factory(:subscription, :plan_key => "premium", :paypal_profile_id => "fgsga564aa",
-                       :starts_at => @sub_start, :billing_starts_at => @sub_start, :activated_at => @sub_start)
+        at_time(@sub_start) do
+          @sub = Factory(:subscription, :plan_key => "premium", :paypal_profile_id => "fgsga564aa",
+                         :starts_at => @sub_start, :billing_starts_at => @sub_start, :activated_at => @sub_start)
+        end
       end
 
       context "active on paypal" do
