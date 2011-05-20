@@ -1,0 +1,17 @@
+en:
+  subscription_fu:
+    subscription:
+      # description used for Paypal
+      description: "%{plan_name} subscription for %{subject_desc}, %{price} per month"
+      # cancel notes used as description for Paypal
+      cancel_notes:
+        update: "Changed subscription plan"
+        cancel: "Subscription cancelled"
+    plan:
+      options:
+        # match this section with the plan names you are using in
+        # config/initializers/subscription_fu.rb to get human readable names
+        profess: Professional
+        premium: Premium
+        basic: Basic
+        free: Free

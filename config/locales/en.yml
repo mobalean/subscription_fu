@@ -1,13 +1,7 @@
 en:
   subscription_fu:
     subscription:
-      description: "MyApp %{plan_name} subscription for %{subject_desc}, %{price} per month"
+      description: "%{plan_name} subscription for %{subject_desc}, %{price} per month"
       cancel_notes:
         update: "Changed subscription plan"
         cancel: "Subscription cancelled"
-    plan:
-      options:
-        profess: Professional
-        premium: Premium
-        basic: Basic
-        free: Free

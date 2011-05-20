@@ -15,6 +15,9 @@ module SubscriptionFu
       def copy_initializer
         template 'initializer.rb', 'config/initializers/subscription_fu.rb'
       end
+      def copy_language_file
+        template 'en.yml', 'config/locales/subscription_fu.en.yml'
+      end
     end
   end
 end
