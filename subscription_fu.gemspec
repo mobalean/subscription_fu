@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = "subscriptionfu"
 
   s.add_dependency 'rails', '>= 3.0.3'
-  s.add_dependency 'rest-client', '>= 1.6.1'
+  s.add_dependency 'paypal-express', '~> 0.3.0'
  
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
 end

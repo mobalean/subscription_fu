@@ -74,7 +74,7 @@ module PaypalTestHelper
   end
 
   def paypal_profile_res(profile, status, opts = {})
-    paypal_res(opts.merge("PROFILEID"=>profile,"STATUS"=>status))
+    paypal_res(opts.merge("PROFILEID"=>profile,"STATUS"=>status,"REGULARAMT"=>"0"))
   end
 
 end

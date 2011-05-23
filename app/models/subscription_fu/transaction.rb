@@ -77,9 +77,15 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
   private
 
   def start_checkout_paypal(return_url, cancel_url)
-    token = SubscriptionFu::Paypal.paypal.start_checkout(return_url, cancel_url, initiator_email, sub_plan.price_with_tax, sub_plan.currency, sub_human_description)
-    update_attributes!(:identifier => token)
-    "#{SubscriptionFu.config.paypal_landing_url}?cmd=_express-checkout&token=#{CGI.escape(token)}"
+    # TODO: set initiator_email
+    pay_req = Paypal::Payment::Request.new(
+      :currency_code => sub_plan.currency,
+      :billing_type  => :RecurringPayments,
+      :billing_agreement_description => sub_human_description)
+
+    response = SubscriptionFu::Paypal.express_request.setup(pay_req, return_url, cancel_url, :no_shipping => true)
+    update_attributes!(:identifier => response.token)
+    response.redirect_uri
   end
 
   def start_checkout_nogw(return_url, cancel_url)
@@ -91,9 +97,17 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
     raise "did you call start_checkout first?" if identifier.blank?
     raise "already activated" if sub_activated?
 
-    paypal_profile_id, paypal_status =
-      SubscriptionFu::Paypal.paypal.create_recurring(identifier, sub_billing_starts_at, sub_plan.price, sub_plan.price_tax, sub_plan.currency, sub_human_description)
-    subscription.update_attributes!(:paypal_profile_id => paypal_profile_id, :activated_at => Time.now)
+    profile = Paypal::Payment::Recurring.new(
+      :start_date => sub_billing_starts_at,
+      :description => sub_human_description,
+      :billing => {
+        :period        => :Month,
+        :frequency     => 1,
+        :amount        => sub_plan.price,
+        :tax           => sub_plan.price_tax,
+        :currency_code => sub_plan.currency } )
+    response = SubscriptionFu::Paypal.express_request.subscribe!(identifier, profile)
+    subscription.update_attributes!(:paypal_profile_id => response.recurring.identifier, :activated_at => Time.now)
     complete_activation
   end
 
@@ -114,7 +128,7 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
     # update the record beforehand, because paypal raises an error if
     # the profile is already cancelled
     complete_cancellation(opts)
-    SubscriptionFu::Paypal.paypal.cancel_recurring(sub_paypal_profile_id, sub_cancel_reason)
+    SubscriptionFu::Paypal.express_request.renew!(sub_paypal_profile_id, :Cancel, :note => sub_cancel_reason)
   end
 
   def complete_cancellation_nogw(opts)

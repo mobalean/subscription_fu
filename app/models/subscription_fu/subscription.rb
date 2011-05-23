@@ -55,7 +55,7 @@ class SubscriptionFu::Subscription < ActiveRecord::Base
   # billing time data about the subscription
 
   def next_billing_date
-    paypal_recurring_details[:next_billing_date]
+    paypal_recurring_details[:next_billing_date] if paypal?
   end
 
   def estimated_next_billing_date
@@ -64,7 +64,7 @@ class SubscriptionFu::Subscription < ActiveRecord::Base
   end
 
   def last_billing_date
-    paypal_recurring_details[:last_payment_date]
+    paypal_recurring_details[:last_payment_date] if paypal?
   end
 
   def successor_start_date(new_plan_name)
@@ -103,8 +103,14 @@ class SubscriptionFu::Subscription < ActiveRecord::Base
 
   private
 
+  def paypal?
+    ! paypal_profile_id.blank?
+  end
+
   def paypal_recurring_details
-    @paypal_recurring_details ||= (paypal_profile_id.blank? ? {} : SubscriptionFu::Paypal.paypal.recurring_details(paypal_profile_id))
+    @paypal_recurring_details ||= begin
+      SubscriptionFu::Paypal.recurring_details(paypal_profile_id)
+    end
   end
 
   def convert_paypal_status(paypal_status)
