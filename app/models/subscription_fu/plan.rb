@@ -7,7 +7,7 @@ class SubscriptionFu::Plan
   attr_accessor :key
   attr_accessor :price
 
-  def initialize(key, price, data)
+  def initialize(key, price, data = {})
     self.key = key
     self.price = price
     data.each {|k,v| self.send("#{k}=", v) }
