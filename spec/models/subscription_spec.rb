@@ -103,14 +103,14 @@ describe SubscriptionFu::Subscription do
             instance_variable_get("@#{sub_instance}").subject.pending_transaction("token123").should == @trans
           end
           context "complete" do
-            before { mock_paypal_create_profile("token123", "6bvsaksd9j") }
+            before { mock_paypal_create_profile("token123", :new_profile_id => "6bvsaksd9j") }
             before { mock_paypal_delete_profile("fgsga564aa") } unless first_sub
             before { @trans.complete }
             should_activate_subscription(sub_instance)
             should_cancel_previous_subscription(sub_instance) unless first_sub
           end
           context "complete with error in cancel" do
-            before { mock_paypal_create_profile("token123", "6bvsaksd9j") }
+            before { mock_paypal_create_profile("token123", :new_profile_id => "6bvsaksd9j") }
             before { mock_paypal_delete_profile_with_error("fgsga564aa") }
             before { @trans.complete }
             should_activate_subscription(sub_instance)

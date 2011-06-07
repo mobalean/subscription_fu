@@ -132,4 +132,12 @@ describe SubscriptionFu::Transaction do
     should_not_support_start_checkout
   end
 
+  it "should calculate tax correctly" do
+    trans = Factory(:transaction, :gateway => "paypal", :status => "initiated", :action => "activation", :identifier => "foo")
+    trans.sub_plan.price_tax.should == 250
+    mock_paypal_create_profile("foo", "AMT" => "5000.00", "TAXAMT" => "250.00")
+    trans.complete
+    trans.status.should == "complete"
+  end
+
 end

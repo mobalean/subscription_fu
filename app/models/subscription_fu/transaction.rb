@@ -104,7 +104,7 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
         :period        => :Month,
         :frequency     => 1,
         :amount        => sub_plan.price,
-        :tax           => sub_plan.price_tax,
+        :tax_amount    => sub_plan.price_tax,
         :currency_code => sub_plan.currency } )
     response = SubscriptionFu::Paypal.express_request.subscribe!(identifier, profile)
     subscription.update_attributes!(:paypal_profile_id => response.recurring.identifier, :activated_at => Time.now)

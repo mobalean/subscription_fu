@@ -41,10 +41,12 @@ module PaypalTestHelper
       with{|request| PaypalRequestMatcher.new("GetRecurringPaymentsProfileDetails", "PROFILEID" => profile) =~ request }
   end
 
-  def mock_paypal_create_profile(token, new_profile_id = "49vnq320dsj", status = "ActiveProfile")
+  def mock_paypal_create_profile(token, args = {})
+    new_profile_id = args.delete(:new_profile_id) || "49vnq320dsj"
+    status = args.delete(:status) || "ActiveProfile"
     stub_request(:post, "https://api-3t.paypal.com/nvp").
       to_return(:status => 200, :body => paypal_profile_res(new_profile_id, status), :headers => {}).
-      with{|request| PaypalRequestMatcher.new("CreateRecurringPaymentsProfile", "TOKEN" => token) =~ request }
+      with{|request| PaypalRequestMatcher.new("CreateRecurringPaymentsProfile", {"TOKEN" => token}.merge(args)) =~ request }
   end
 
   def mock_paypal_create_profile_with_error(token)
