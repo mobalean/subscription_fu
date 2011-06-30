@@ -6,7 +6,6 @@ gemspec
 group :development, :test do
   gem 'rails'
   gem 'sqlite3'
-  gem 'rake', "0.8.7"
   gem 'haml'
   gem 'rspec', '>= 2.5.0'
   gem 'rspec-rails'
