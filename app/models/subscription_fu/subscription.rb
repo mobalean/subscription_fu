@@ -18,6 +18,8 @@ class SubscriptionFu::Subscription < ActiveRecord::Base
   validates :cancel_reason, :presence => true, :inclusion => AVAILABLE_CANCEL_REASONS, :if => :canceled?
 
   scope :activated, where("subscriptions.activated_at IS NOT NULL")
+  scope :not_canceled, activated.where("subscriptions.canceled_at IS NULL")
+  scope :using_paypal, where("subscriptions.paypal_profile_id IS NOT NULL")
   scope :current, lambda {|time| activated.where("subscriptions.starts_at <= ? AND (subscriptions.canceled_at IS NULL OR subscriptions.canceled_at > ?)", time, time) }
 
   def self.build_for_initializing(plan_key, prev_sub = nil)
