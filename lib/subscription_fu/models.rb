@@ -41,12 +41,7 @@ module SubscriptionFu
       end
 
       def build_next_subscription(plan_key)
-        if active_subscription
-          # TODO refactor
-          subscriptions.build_for_initializing(plan_key, active_subscription.successor_start_date(plan_key), active_subscription.successor_billing_start_date, active_subscription)
-        else
-          subscriptions.build_for_initializing(plan_key)
-        end
+        subscriptions.build_for_initializing(plan_key, active_subscription)
       end
     end
 

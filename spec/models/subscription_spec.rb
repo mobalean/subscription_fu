@@ -198,7 +198,7 @@ describe SubscriptionFu::Subscription do
         it("should return next_billing_date") { @sub.next_billing_date.should == @next_billing }
         it("should return last_billing_date") { @sub.last_billing_date.should == Time.parse("2010-01-10 00:00 UTC") }
         it("should return estimated_next_billing_date") { @sub.estimated_next_billing_date.should == @next_billing }
-        it("should return successor_billing_start_date") { @sub.successor_billing_start_date.should == @next_billing }
+        it("should return end_date_when_canceled") { @sub.end_date_when_canceled.should == @next_billing }
         context "profess successor" do
           before { at_time(@now) { @succ = @sub.subject.build_next_subscription('profess'); @succ.save! } }
           should_build_valid_successor("profess", :now, :next_billing)
@@ -221,7 +221,7 @@ describe SubscriptionFu::Subscription do
         it("should return next_billing_date") { @sub.next_billing_date.should be_nil }
         it("should return last_billing_date") { @sub.last_billing_date.should == Time.parse("2010-01-10 00:00 UTC") }
         it("should return estimated_next_billing_date") { @sub.estimated_next_billing_date.should == @next_billing }
-        it("should return successor_billing_start_date") { @sub.successor_billing_start_date.should == @next_billing }
+        it("should return end_date_when_canceled") { @sub.end_date_when_canceled.should == @next_billing }
         context "profess successor" do
           before { at_time(@now) { @succ = @sub.subject.build_next_subscription('profess'); @succ.save! } }
           should_build_valid_successor("profess", :now, :next_billing)
@@ -241,7 +241,7 @@ describe SubscriptionFu::Subscription do
         it("should return next_billing_date") { @sub.next_billing_date.should be_nil }
         it("should return last_billing_date") { @sub.last_billing_date.should be_nil }
         it("should return estimated_next_billing_date") { @sub.estimated_next_billing_date.should be_nil }
-        it("should return successor_billing_start_date") { at_time(@now) { @sub.successor_billing_start_date.should == @now } }
+        it("should return end_date_when_canceled") { at_time(@now) { @sub.end_date_when_canceled.should == @now } }
         context "profess successor" do
           before { at_time(@now) { @succ = @sub.subject.build_next_subscription('profess'); @succ.save! } }
           should_build_valid_successor("profess", :now, :now)
@@ -258,7 +258,7 @@ describe SubscriptionFu::Subscription do
 
       context "canceled on our side" do
         before { @sub.update_attributes(:canceled_at => @next_billing, :cancel_reason => 'admin') }
-        it("should return successor_billing_start_date") { @sub.successor_billing_start_date.should == @next_billing }
+        it("should return end_date_when_canceled") { @sub.end_date_when_canceled.should == @next_billing }
         context "profess successor" do
           before { at_time(@now) { @succ = @sub.subject.build_next_subscription('profess'); @succ.save! } }
           should_build_valid_successor("profess", :now, :next_billing)

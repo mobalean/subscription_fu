@@ -20,8 +20,13 @@ class SubscriptionFu::Subscription < ActiveRecord::Base
   scope :activated, where("subscriptions.activated_at IS NOT NULL")
   scope :current, lambda {|time| activated.where("subscriptions.starts_at <= ? AND (subscriptions.canceled_at IS NULL OR subscriptions.canceled_at > ?)", time, time) }
 
-  # TODO this should probably only take plan?key, prev_sub
-  def self.build_for_initializing(plan_key, start_time = Time.now, billing_start_time = start_time, prev_sub = nil)
+  def self.build_for_initializing(plan_key, prev_sub = nil)
+    if prev_sub
+      start_time = prev_sub.successor_start_date(plan_key)
+      billing_start_time = prev_sub.end_date_when_canceled
+    else
+      billing_start_time = start_time = Time.now
+    end
     new(:plan_key => plan_key, :starts_at => start_time, :billing_starts_at => billing_start_time, :prev_subscription => prev_sub)
   end
 
@@ -74,11 +79,11 @@ class SubscriptionFu::Subscription < ActiveRecord::Base
       Time.now
     else
       # otherwise they start with the next billing cycle
-      successor_billing_start_date
+      end_date_when_canceled
     end
   end
 
-  def successor_billing_start_date
+  def end_date_when_canceled
     # in case this plan was already canceled, this date takes
     # precedence (there won't be a next billing time anymore).
     canceled_at || next_billing_date || estimated_next_billing_date || Time.now
@@ -86,19 +91,19 @@ class SubscriptionFu::Subscription < ActiveRecord::Base
 
   # billing API
 
-  def initiate_activation(admin)
+  def initiate_activation(initiator)
     gateway = (plan.free_plan? || sponsored?) ? 'nogw' : 'paypal'
-    transactions.create_activation(gateway, admin).tap do |t|
+    transactions.create_activation(gateway, initiator).tap do |t|
       if prev_subscription
         to_cancel = [prev_subscription]
         to_cancel.push(*prev_subscription.next_subscriptions.where("subscriptions.id <> ?", self).all)
-        to_cancel.each {|s| s.initiate_cancellation(admin, t) }
+        to_cancel.each {|s| s.initiate_cancellation(initiator, t) }
       end
     end
   end
 
-  def initiate_cancellation(admin, activation_transaction)
-    transactions.create_cancellation(admin, activation_transaction, self)
+  def initiate_cancellation(initiator, activation_transaction)
+    transactions.create_cancellation(initiator, activation_transaction, self)
   end
 
   private
