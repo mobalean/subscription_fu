@@ -6,6 +6,9 @@ module SubscriptionFu
         include SubscriptionFu::Models
       end
     end
+    rake_tasks do
+      load "subscription_fu/rake.tasks"
+    end
   end
 end
 

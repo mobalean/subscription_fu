@@ -22,6 +22,12 @@ class SubscriptionFu::Subscription < ActiveRecord::Base
   scope :using_paypal, where("subscriptions.paypal_profile_id IS NOT NULL")
   scope :current, lambda {|time| activated.where("subscriptions.starts_at <= ? AND (subscriptions.canceled_at IS NULL OR subscriptions.canceled_at > ?)", time, time) }
 
+  def self.sync_all_from_gateway
+    SubscriptionFu::Subscription.using_paypal.not_canceled.each do |s|
+      s.sync_from_gateway!
+    end
+  end
+
   def self.build_for_initializing(plan_key, prev_sub = nil)
     if prev_sub
       start_time = prev_sub.successor_start_date(plan_key)

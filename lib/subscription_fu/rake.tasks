@@ -1,0 +1,6 @@
+namespace :subfu do
+  desc "sync subscriptions with gateways"
+  task :gwsync => :environment do
+    SubscriptionFu::Subscription.sync_all_from_gateway
+  end
+end
