@@ -128,10 +128,17 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
   end
 
   def complete_cancellation_paypal(opts)
-    # update the record beforehand, because paypal raises an error if
-    # the profile is already cancelled
+    begin
+      SubscriptionFu::Paypal.express_request.renew!(sub_paypal_profile_id, :Cancel, :note => sub_cancel_reason)
+    rescue Paypal::Exception::APIError => err
+      if err.response.details.all?{|d| d.error_code == "11556"}
+        # 11556 - Invalid profile status for cancel action; profile should be active or suspended
+        logger.info("Got '#{err.response.details.inspect}' from paypal which indicates profile wasn't active (any more)...")
+      else
+        raise err
+      end
+    end
     complete_cancellation(opts)
-    SubscriptionFu::Paypal.express_request.renew!(sub_paypal_profile_id, :Cancel, :note => sub_cancel_reason)
   end
 
   def complete_cancellation_nogw(opts)

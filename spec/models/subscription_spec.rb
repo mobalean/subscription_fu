@@ -117,7 +117,7 @@ describe SubscriptionFu::Subscription do
             it "should cancel previous sub with failure" do
               sub = instance_variable_get("@#{sub_instance}").prev_subscription.reload
               sub.canceled_at.should be_present
-              sub.transactions.last.status.should == "failed"
+              sub.transactions.last.status.should == "complete"
             end
           end unless first_sub || prev_sub_is_free
           context "complete with error in create" do
