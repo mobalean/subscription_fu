@@ -29,10 +29,16 @@ class CreateSubscriptionFuTables < ActiveRecord::Migration
 
     add_index "subscription_transactions", ["identifier"]
     add_index "subscription_transactions", ["subscription_id"]
+
+    create_table "subscription_system_initiators" do |t|
+      t.string "name"
+      t.string "description"
+    end
   end
 
   def self.down
     drop_table "subscriptions"
     drop_table "subscription_transactions"
+    drop_table "subscription_system_initiators"
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110516070948) do
+ActiveRecord::Schema.define(:version => 20110701061927) do
 
   create_table "initiators", :force => true do |t|
     t.string   "desc"
@@ -23,6 +23,11 @@ ActiveRecord::Schema.define(:version => 20110516070948) do
     t.string   "desc"
     t.datetime "created_at"
     t.datetime "updated_at"
+  end
+
+  create_table "subscription_system_initiators", :force => true do |t|
+    t.string "name"
+    t.string "description"
   end
 
   create_table "subscription_transactions", :force => true do |t|

@@ -1,7 +1,7 @@
 class SubscriptionFu::Subscription < ActiveRecord::Base
   set_table_name :subscriptions
 
-  AVAILABLE_CANCEL_REASONS = %w( update cancel timeout admin )
+  AVAILABLE_CANCEL_REASONS = %w( update cancel gwcancel timeout admin )
 
   default_scope order("created_at ASC", "id ASC")
 
@@ -106,6 +106,15 @@ class SubscriptionFu::Subscription < ActiveRecord::Base
 
   def initiate_cancellation(initiator, activation_transaction)
     transactions.create_cancellation(initiator, activation_transaction, self)
+  end
+
+  def sync_from_gateway!
+    if paypal?
+      if paypal_recurring_details[:status] == SubscriptionFu::Paypal::CANCELED_STATE
+        t = initiate_cancellation(SubscriptionFu::SystemInitiator.paypal_sync_initiator, nil)
+        t.complete(:effective => end_date_when_canceled, :reason => :gwcancel)
+      end
+    end
   end
 
   private

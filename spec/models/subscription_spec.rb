@@ -234,6 +234,16 @@ describe SubscriptionFu::Subscription do
           before { at_time(@now) { @succ = @sub.subject.build_next_subscription('free'); @succ.save! } }
           should_build_valid_successor("free", :next_billing, :next_billing)
         end
+        context "sync" do
+          before { mock_paypal_delete_profile_with_error("fgsga564aa") }
+          before { at_time(@now) { @sub.sync_from_gateway! } }
+          it "should mark subscription as cancelled" do
+            @sub.reload.should be_canceled
+            @sub.canceled_at.should == Time.parse("2010-02-10 00:00 UTC")
+            @sub.cacnel_reason.should == "gwcacnel"
+            @sub.transactions.last.status.should == "complete"
+          end
+        end
       end
 
       context "canceled on paypal, no payments made" do
