@@ -194,7 +194,7 @@ describe SubscriptionFu::Subscription do
       end
 
       context "active on paypal" do
-        before { mock_paypal_profile_details("fgsga564aa", "ActiveProfile", "2010-01-10", "2010-02-10") }
+        before { mock_paypal_profile_details("fgsga564aa", "Active", "2010-01-10", "2010-02-10") }
         it("should return next_billing_date") { @sub.next_billing_date.should == @next_billing }
         it("should return last_billing_date") { @sub.last_billing_date.should == Time.parse("2010-01-10 00:00 UTC") }
         it("should return estimated_next_billing_date") { @sub.estimated_next_billing_date.should == @next_billing }
@@ -217,7 +217,7 @@ describe SubscriptionFu::Subscription do
       end
 
       context "canceled on paypal" do
-        before { mock_paypal_profile_details("fgsga564aa", "CanceledProfile", "2010-01-10", nil) }
+        before { mock_paypal_profile_details("fgsga564aa", "Cancelled", "2010-01-10", nil) }
         it("should return next_billing_date") { @sub.next_billing_date.should be_nil }
         it("should return last_billing_date") { @sub.last_billing_date.should == Time.parse("2010-01-10 00:00 UTC") }
         it("should return estimated_next_billing_date") { @sub.estimated_next_billing_date.should == @next_billing }
@@ -237,7 +237,7 @@ describe SubscriptionFu::Subscription do
       end
 
       context "canceled on paypal, no payments made" do
-        before { mock_paypal_profile_details("fgsga564aa", "CanceledProfile", nil, nil) }
+        before { mock_paypal_profile_details("fgsga564aa", "Cancelled", nil, nil) }
         it("should return next_billing_date") { @sub.next_billing_date.should be_nil }
         it("should return last_billing_date") { @sub.last_billing_date.should be_nil }
         it("should return estimated_next_billing_date") { @sub.estimated_next_billing_date.should be_nil }

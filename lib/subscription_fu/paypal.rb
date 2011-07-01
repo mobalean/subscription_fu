@@ -3,6 +3,9 @@ require "paypal"
 module SubscriptionFu::Paypal
   UTC_TZ = ActiveSupport::TimeZone.new("UTC")
 
+  CANCELED_STATE = "Cancelled"
+  ACTIVE_STATE = "Active"
+
   def self.express_request
     config = SubscriptionFu.config
     ::Paypal::Express::Request.new(
@@ -13,7 +16,8 @@ module SubscriptionFu::Paypal
 
   def self.recurring_details(profile_id)
     res = SubscriptionFu::Paypal.express_request.subscription(profile_id)
-    { :next_billing_date => UTC_TZ.parse(res.recurring.summary.next_billing_date.to_s),
-      :last_payment_date => UTC_TZ.parse(res.recurring.summary.last_payment_date.to_s), }
+    { :status => res.recurring.status,
+      :next_billing_date => UTC_TZ.parse(res.recurring.summary.next_billing_date.to_s),
+      :last_payment_date => UTC_TZ.parse(res.recurring.summary.last_payment_date.to_s) }
   end
 end
