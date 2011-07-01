@@ -54,8 +54,11 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
       update_attributes!(:status => "complete")
     rescue Exception => err
       if defined? ::ExceptionNotifier
-        data = (err.respond_to?(:data) ? err.data : {}).merge(:subscription => subscription.inspect, :transaction => self.inspect)
+        data = {:api_response => err.respond_to?(:response) ? err.response : nil, :subscription => subscription.inspect, :transaction => self.inspect}
         ::ExceptionNotifier::Notifier.background_exception_notification(err, :data => data).deliver
+      elsif defined? ::HoptoadNotifier
+        data = {:subscription => subscription.inspect, :transaction => self.inspect}
+        ::HoptoadNotifier.notify(err, :parameters => data)
       else
         logger.warn(err)
         logger.debug(err.backtrace.join("\n"))
