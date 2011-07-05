@@ -240,7 +240,7 @@ describe SubscriptionFu::Subscription do
           it "should mark subscription as cancelled" do
             @sub.reload.should be_canceled
             @sub.canceled_at.should == Time.parse("2010-02-10 00:00 UTC")
-            @sub.cacnel_reason.should == "gwcacnel"
+            @sub.cancel_reason.should == "gwcancel"
             @sub.transactions.last.status.should == "complete"
           end
         end
