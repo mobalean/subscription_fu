@@ -20,26 +20,6 @@ describe SubscriptionFu::Transaction do
         lambda { @trans.start_checkout("url1", "url2") }.should raise_error RuntimeError
       end
     end
-    def complete_should_transition_to_activated
-      context "complete" do
-        before { @res = @trans.complete }
-        it("should return true") { @res.should == true }
-        it "should transition" do
-          @trans.status.should == "complete"
-          @trans.subscription.should be_activated
-        end
-      end
-    end
-    def complete_should_transition_to_canceled
-      context "complete" do
-        before { @res = @trans.complete }
-        it("should return true") { @res.should == true }
-        it "should transition" do
-          @trans.status.should == "complete"
-          @trans.subscription.should be_canceled
-        end
-      end
-    end
   end
 
   it { should belong_to :subscription }
@@ -62,6 +42,22 @@ describe SubscriptionFu::Transaction do
   %w( initiated complete failed aborted ).each {|v| it { should allow_value(v).for(:status) } }
   it { should_not allow_value("unknown").for(:status) }
 
+
+  shared_examples "successful checkout" do
+    before { @res = @trans.complete }
+    it("should return true") { @res.should == true }
+    it "should transition" do
+      @trans.status.should == "complete"
+      @trans.subscription.should be_activated
+    end
+  end
+
+  shared_examples "failed checkout" do
+    before { @res = @trans.complete }
+    it("should return false") { @res.should == false }
+    it("should fail") { @trans.status.should == "failed" }
+  end
+
   context "initiated activation nogw transaction" do
     before do
       @sub = Factory(:subscription, :plan_key => 'free')
@@ -70,13 +66,9 @@ describe SubscriptionFu::Transaction do
     should_have_nogw_initiated_status
 
     context "checkout" do
-      before do
-        @redirect_target = @trans.start_checkout("url1", "url2")
-      end
-      it "should redirect to confirmation URL" do
-        @redirect_target.should == "url1"
-      end
-      complete_should_transition_to_activated
+      before { @redirect_target = @trans.start_checkout("url1", "url2") }
+      it("should redirect to confirmation URL") { @redirect_target.should == "url1" }
+      it_should_behave_like "successful checkout"
     end
   end
 
@@ -87,7 +79,14 @@ describe SubscriptionFu::Transaction do
     end
     should_have_nogw_initiated_status
     should_not_support_start_checkout
-    complete_should_transition_to_canceled
+    context "complete" do
+      before { @res = @trans.complete }
+      it("should return true") { @res.should == true }
+      it "should transition" do
+        @trans.status.should == "complete"
+        @trans.subscription.should be_canceled
+      end
+    end
   end
 
   context "complete nogw transaction" do
@@ -106,19 +105,27 @@ describe SubscriptionFu::Transaction do
     context "checkout" do
       before do
         mock_paypal_express_checkout("bgds65sd")
-        mock_paypal_create_profile("bgds65sd")
         @redirect_target = @trans.start_checkout("url1", "url2")
       end
       it "should redirect to paypal" do
         @redirect_target.should == "https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=bgds65sd"
         @trans.identifier.should == "bgds65sd"
       end
-      complete_should_transition_to_activated
+      context "ok" do
+        before { mock_paypal_create_profile("bgds65sd") }
+        it_should_behave_like "successful checkout"
+      end
+      context "error (paypal)" do
+        before { mock_paypal_create_profile_with_error("bgds65sd") }
+        it_should_behave_like "failed checkout"
+      end
+      context "error (http)" do
+        before { stub_request(:post, "https://api-3t.paypal.com/nvp").to_return(:status => 500, :body => "Internal Server Error") }
+        it_should_behave_like "failed checkout"
+      end
     end
-    context "complete without checkout" do
-      before { @res = @trans.complete }
-      it("should return false") { @res.should == false }
-      it("should fail") { @trans.status.should == "failed" }
+    context "without checkout" do
+      it_should_behave_like "failed checkout"
     end
   end
 

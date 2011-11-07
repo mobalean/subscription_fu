@@ -53,13 +53,24 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
       send("complete_#{action}_#{gateway}", opts)
       update_attributes!(:status => "complete")
     rescue Exception => err
+      data = {
+        :subscription => subscription.inspect,
+        :transaction => self.inspect }
+      if err.instance_of?(Paypal::Exception::APIError)
+        data[:paypal_response] = err.response.inspect
+        data[:paypal_error_message] = err.message
+      elsif err.instance_of?(Paypal::Exception::HttpError)
+        data[:http_error_code] = err.code
+        data[:http_error_message] = err.message
+      end
+
       if defined? ::ExceptionNotifier
-        data = {:api_response => err.respond_to?(:response) ? err.response : nil, :subscription => subscription.inspect, :transaction => self.inspect}
         ::ExceptionNotifier::Notifier.background_exception_notification(err, :data => data).deliver
       elsif defined? ::HoptoadNotifier
-        data = {:subscription => subscription.inspect, :transaction => self.inspect}
         ::HoptoadNotifier.notify(err, :parameters => data)
       else
+        logger.info("could not complete #{action} on #{gateway}")
+        logger.info("details: #{data.inspect}")
         logger.warn(err)
         logger.debug(err.backtrace.join("\n"))
       end
@@ -109,9 +120,11 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
         :amount        => sub_plan.price,
         :tax_amount    => sub_plan.price_tax,
         :currency_code => sub_plan.currency } )
-    response = SubscriptionFu::Paypal.express_request.subscribe!(identifier, profile)
-    subscription.update_attributes!(:paypal_profile_id => response.recurring.identifier, :activated_at => Time.now)
-    complete_activation
+    begin
+      response = SubscriptionFu::Paypal.express_request.subscribe!(identifier, profile)
+      subscription.update_attributes!(:paypal_profile_id => response.recurring.identifier, :activated_at => Time.now)
+      complete_activation
+    end
   end
 
   def complete_activation_nogw(opts)
