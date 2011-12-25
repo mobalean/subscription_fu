@@ -107,12 +107,13 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
     return_url
   end
 
+  PAYPAL_STARTDATE_OFFSET = 10.minutes
   def complete_activation_paypal(opts)
     raise "did you call start_checkout first?" if identifier.blank?
     raise "already activated" if sub_activated?
 
     profile = Paypal::Payment::Recurring.new(
-      :start_date => sub_billing_starts_at,
+      :start_date => sub_billing_starts_at + PAYPAL_STARTDATE_OFFSET,
       :description => sub_human_description,
       :billing => {
         :period        => :Month,
