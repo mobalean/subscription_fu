@@ -111,8 +111,14 @@ class SubscriptionFu::Transaction < ActiveRecord::Base
     raise "did you call start_checkout first?" if identifier.blank?
     raise "already activated" if sub_activated?
 
+    start_date =
+      if sub_billing_starts_at.utc.to_date > SubscriptionFu::Paypal::UTC_TZ.today
+        sub_billing_starts_at
+      else
+        SubscriptionFu::Paypal::UTC_TZ.today.to_time(:utc).tomorrow
+      end
     profile = Paypal::Payment::Recurring.new(
-      :start_date => sub_billing_starts_at,
+      :start_date => start_date,
       :description => sub_human_description,
       :billing => {
         :period        => :Month,
